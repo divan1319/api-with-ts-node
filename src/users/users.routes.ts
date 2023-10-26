@@ -7,11 +7,11 @@ export const userRouter = express.Router()
 
 userRouter.get("/users", async (req: Request, res: Response) =>{
     try {
-        const allUsers: UnitUser[] = await db.findAll()
+        const allUsers = await db.findAll()
         
-        if(!allUsers) return res.status(StatusCodes.NOT_FOUND).json({msg:'Aun no hay usuarios'})
-
-        return res.status(StatusCodes.OK).json({total_user: allUsers.length, allUsers})
+        //if(!allUsers) return res.status(StatusCodes.NOT_FOUND).json({msg:'Aun no hay usuarios'})
+        console.log(allUsers)
+        return res.status(StatusCodes.OK).json({allUsers})
 
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error})
@@ -37,11 +37,11 @@ userRouter.post("/register",async (req: Request, res: Response)=>{
             return res.status(StatusCodes.BAD_REQUEST).json({error : `Please provide all the required parameters..`})
         }
 
-        const user = await db.findByEmail(email) 
+        /*const user = await db.findByEmail(email)
 
         if (user) {
             return res.status(StatusCodes.BAD_REQUEST).json({error : `This email has already been registered..`})
-        }
+        }*/
 
         const newUser = await db.create(req.body)
 
@@ -52,7 +52,7 @@ userRouter.post("/register",async (req: Request, res: Response)=>{
     }
 })
 
-userRouter.post("/login", async (req : Request, res : Response) => {
+/*userRouter.post("/login", async (req : Request, res : Response) => {
     try {
         const {email, password} = req.body
         
@@ -77,7 +77,7 @@ userRouter.post("/login", async (req : Request, res : Response) => {
     } catch (error) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error})
     }
-})
+})*/
 
 userRouter.put('/user/:id', async (req : Request, res : Response) => {
 

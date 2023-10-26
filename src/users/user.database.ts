@@ -2,6 +2,7 @@ import {User,UnitUser,Users} from "./user.interface"
 import bycrypt from "bcryptjs"
 import {v4 as random} from "uuid"
 import fs from "fs"
+import connection from "../../config/db"
 
 let users: Users = loadUsers()
 
@@ -24,37 +25,41 @@ function saveUsers(){
     }
 }
 
-export const findAll = async () : Promise<UnitUser[]> => Object.values(users)
+export const findAll = async () => {
+    const query = `SELECT * FROM users`
+    const res = connection.query(query)
+    console.log(res.OkPacket)
+    
+}
 export const findOne = async (id:string) : Promise<UnitUser> => users[id]
 
 export const create = async (userData:UnitUser): Promise<UnitUser | null> => {
     
-    let id  = random()
-    let check_user = await findOne(id)
-
-    while(check_user){
-        id= random()
-        check_user = await findOne(id)
-    }
+    let uuid  = random()
 
     const salt = await bycrypt.genSalt(10)
     const hashedPassword = await bycrypt.hash(userData.password,salt)
 
     const user : UnitUser = {
-        id:id,
+        uuid:uuid,
         username:userData.username,
         email:userData.email,
         password:hashedPassword
     }
 
-    users[id] = user
+    const query = "INSERT INTO users (uuid,username,email,password) VALUES (?,?,?,?)"
 
-    saveUsers()
-
+    connection.query(query,[user.uuid,user.username,user.email,user.password],(err,result)=>{
+        if(err) {
+            console.log(err)
+            throw err
+        }
+    })
+    connection.destroy()
     return user;
 }
 
-export const findByEmail = async(user_email:string): Promise<null| UnitUser> =>{
+/*export const findByEmail = async(user_email:string): Promise<null| UnitUser> =>{
 
     const allUsers = await findAll()
     const getUser = allUsers.find(res=> user_email == res.email)
@@ -64,18 +69,18 @@ export const findByEmail = async(user_email:string): Promise<null| UnitUser> =>{
     }
 
     return getUser
-}
+}*/
 
-export const comparePassword =async (email:string,supplied_pass:string): Promise<null | UnitUser> => {
+/*export const comparePassword =async (email:string,supplied_pass:string): Promise<null | UnitUser> => {
     
-    const user = await findByEmail(email)
+    //const user = await findByEmail(email)
 
     const decryptPassword = await bycrypt.compare(supplied_pass,user!.password)
 
     if(!decryptPassword) return null
 
     return user
-}
+}*/
 
 export const update = async (id:string,updateValues:User): Promise<UnitUser | null> => {
 
